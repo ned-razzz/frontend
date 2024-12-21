@@ -3,6 +3,8 @@
 import React, { ChangeEvent, useState } from "react";
 import { supabase } from "~/src/lib/supabase";
 import { PostType } from "~/src/app/api/archive/route";
+import crypto from "crypto";
+import { useRouter } from "next/navigation";
 
 // // 한글을 유니코드로 변환하는 함수
 // function encodeToUnicode(str) {
@@ -20,6 +22,8 @@ const ArchiveUploadForm: React.FC = () => {
   const [description, setDescription] = useState<string>("");
   const [tags, setTags] = useState<string>("");
 
+  const router = useRouter();
+
   // file select
   const selectFile = async (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files == null) {
@@ -35,17 +39,18 @@ const ArchiveUploadForm: React.FC = () => {
       throw new Error("No file selected");
     }
 
+    const hash = crypto.createHash("sha256");
+    hash.update(file.name + Date.now().toString());
+    const fileIdentifier = `${hash.digest("hex")}-${file.name}`;
+
     // upload to supabase storage
     const { data, error } = await supabase.storage
       .from("project-lamp")
-      .upload(`archive/${file.name}`, file);
+      .upload(`archive/${fileIdentifier}`, file);
 
     // error check
     if (error) {
       throw error;
-    }
-    if (data.path ?? false) {
-      throw new Error("No file path");
     }
 
     return data.path;
@@ -72,9 +77,6 @@ const ArchiveUploadForm: React.FC = () => {
       const error = await response.json();
       throw new Error("Failed to create post: " + error.msg);
     }
-
-    const newPost = await response.json();
-    console.log("New post created:", newPost);
   };
 
   // execute upload
@@ -83,11 +85,8 @@ const ArchiveUploadForm: React.FC = () => {
     try {
       const filePath = await uploadFile();
       await uploadPost(filePath!);
+      router.push("/archive");
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Failed to create post: ", error.message);
-        return;
-      }
       console.error("Failed to create post: ", error);
     }
   };

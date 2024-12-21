@@ -1,4 +1,3 @@
-import { file, file_v1 } from "googleapis/build/src/apis/file";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/src/lib/prisma";
 
@@ -18,7 +17,7 @@ export const POST = async (req: NextRequest) => {
   }));
 
   try {
-    const newPost = await prisma.post.create({
+    await prisma.post.create({
       data: {
         title,
         description,
@@ -28,16 +27,10 @@ export const POST = async (req: NextRequest) => {
         },
       },
     });
-
-    // Convert BigInt fields to string
-    const newPostSerialized = {
-      ...newPost,
-      post_id: newPost.post_id.toString(),
-    };
-
-    return NextResponse.json(newPostSerialized);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ msg: "Failed to create post", status: 400 });
   }
+
+  return NextResponse.json({ status: 200 });
 };
