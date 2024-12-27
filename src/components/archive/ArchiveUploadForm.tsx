@@ -2,19 +2,9 @@
 
 import React, { ChangeEvent, useState } from "react";
 import { supabase } from "~/src/lib/supabase";
-import { PostType } from "~/src/app/api/archive/route";
+import { PostType } from "~/src/app/api/archive/posts/route";
 import crypto from "crypto";
 import { useRouter } from "next/navigation";
-
-// // 한글을 유니코드로 변환하는 함수
-// function encodeToUnicode(str) {
-//   return str.split('').map(char => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0')).join('')
-// }
-
-// // 유니코드를 한글로 변환하는 함수
-// function decodeFromUnicode(unicodeStr) {
-//   return unicodeStr.split('\\u').slice(1).map(code => String.fromCharCode(parseInt(code, 16))).join('')
-// }
 
 const ArchiveUploadForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -39,6 +29,7 @@ const ArchiveUploadForm: React.FC = () => {
       throw new Error("No file selected");
     }
 
+    //need to create a unique identifier for the file
     const hash = crypto.createHash("sha256");
     hash.update(file.name + Date.now().toString());
     const fileIdentifier = `${hash.digest("hex")}-${file.name}`;
@@ -65,7 +56,7 @@ const ArchiveUploadForm: React.FC = () => {
       file_url: filePath!,
     };
 
-    const response = await fetch("/api/archive", {
+    const response = await fetch("/api/archive/posts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

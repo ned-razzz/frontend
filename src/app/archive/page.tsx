@@ -1,97 +1,61 @@
+import { Post, Tag } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
-import Post from "~/src/components/archive/Post";
-import { supabase } from "~/src/lib/supabase";
+import PostCard from "~/src/components/archive/PostCard";
 
-
-/**
- * Converts a timestamptz string to a date string in the format YYYY-MM-DD.
- * @param {string} timestamptz - The timestamptz string to convert.
- * @returns {string} - The formatted date string.
- */
-export function formatDate(timestamptz: string): string {
-  const date = new Date(timestamptz);
-  const year = date.getFullYear().toString().slice(2, 4);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}.${month}.${day}`;
+async function getTags() {
+  try {
+    const response = await fetch("http://localhost:3000/api/archive/tags");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const { tags } = await response.json();
+    return tags as Tag[];
+  } catch (error) {
+    console.error("Failed to fetch tags:", error);
+  }
 }
 
-async function fetchTags() {
-  const { data, error } = await supabase
-    .from('tags')
-    .select();
+async function getPosts() {
+  try {
+    const response = await fetch("http://localhost:3000/api/archive/posts");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-  if (error) {
-    console.error('Error fetching tags:', error);
-    return [];
+    const { posts }: { posts: (Post & { tags: Tag[] })[] } = await response.json();
+    return posts;
+  } catch (error) {
+    console.error("Failed to fetch posts:", error);
   }
-
-  return data.map((tag) => ({ 
-    id: tag.tag_id, 
-    name: tag.name 
-  }));
-}
-
-async function fetchRecords() {
-  const { data, error } = await supabase
-    .from('records')
-    .select(`
-      record_id, 
-      title, 
-      description, 
-      created_at,
-      updated_at,
-      tags(tag_id, name)
-      `);
-
-  if (error) {
-    console.error('Error fetching :', error);
-    return [];
-  }
-
-  return data.map((record) => ({
-    recordId: record.record_id, 
-    title: record.title,
-    description: record.description,
-    createdAt: formatDate(record.created_at),
-    updatedAt: formatDate(record.updated_at),
-    tags: record.tags.map((tag) => ({ 
-      id: tag.tag_id, 
-      name: tag.name 
-    }))
-  }));
 }
 
 const Archive: React.FC = async () => {
-  const tags = await fetchTags();
-  console.log(tags);
-  const records = await fetchRecords();
+  const tags = await getTags();
+  const posts = await getPosts();
 
   return (
     <>
       <aside className="mb-5">
         <h2 className="text-lg">태그 목록</h2>
         <ul className="text-sm">
-          {tags.map(tag => (
-            <li key={tag.id}>{tag.name}</li>
+          {tags?.map((tag: Tag) => (
+            <li key={tag.tag_id}>{tag.name}</li>
           ))}
         </ul>
       </aside>
       <section className="mb-5">
-        <Link href="/archive/new" className="p-2 border-2 border-black">자료 등록</Link>
+        <Link href="/archive/new" className="p-2 border-2 border-black">
+          자료 등록
+        </Link>
       </section>
       <section>
-        {records.map(record => (
-          <Post 
-            key={record.recordId} 
-            record={record}
-            className="mb-3" 
-          />
+        {posts?.map((post) => (
+          <PostCard key={post.post_id} data={post} className="mb-3" />
         ))}
       </section>
     </>
   );
-}
+};
 
 export default Archive;
