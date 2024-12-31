@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/src/lib/prisma";
+import { replacerBigint } from "~/src/lib/utils/replacerBigint";
 
-export interface PostType {
+export interface PostRecord {
   title: string;
   description: string | null;
   tags: string[];
-  file_url: string;
+  files: FileRecord[];
 }
 
+export interface FileRecord {
+  name: string;
+  url: string;
+}
+
+// add record Post table and File table
+// if tag does not exist, add tag to Tag table
 export const POST = async (req: NextRequest) => {
-  const { title, description, tags, file_url }: PostType = await req.json();
+  const { title, description, tags, files }: PostRecord = await req.json();
 
   const tagListCreate = tags.map((tag) => ({
     where: { name: tag },
@@ -21,7 +29,11 @@ export const POST = async (req: NextRequest) => {
       data: {
         title,
         description,
-        file_url,
+        files: {
+          createMany: {
+            data: files,
+          },
+        },
         tags: {
           connectOrCreate: tagListCreate,
         },
@@ -38,17 +50,24 @@ export const POST = async (req: NextRequest) => {
 export const GET = async () => {
   try {
     const posts = await prisma.post.findMany({
-      include: { tags: true },
+      include: {
+        tags: {
+          select: { tag_id: true, name: true },
+        },
+        files: {
+          select: { file_id: true, name: true, url: true },
+        },
+      },
     });
-    console.log(posts);
 
-    const formattedPosts = posts.map((post) => ({
-      ...post,
-      post_id: post.post_id.toString(),
-      tags: post.tags.map((tag) => ({ ...tag, tag_id: tag.tag_id.toString() })),
-    }));
+    const postsJson = JSON.stringify(posts, replacerBigint);
 
-    return NextResponse.json({ posts: formattedPosts });
+    return new NextResponse(postsJson, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json({ status: 500, message: "Error fetching posts" });

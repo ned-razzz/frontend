@@ -2,7 +2,7 @@
 
 import React, { ChangeEvent, useState } from "react";
 import { supabase } from "~/src/lib/supabase";
-import { PostType } from "~/src/app/api/archive/posts/route";
+import { FileRecord, PostRecord } from "~/src/app/api/archive/posts/route";
 import crypto from "crypto";
 import { useRouter } from "next/navigation";
 
@@ -32,7 +32,7 @@ const ArchiveUploadForm: React.FC = () => {
     //need to create a unique identifier for the file
     const hash = crypto.createHash("sha256");
     hash.update(file.name + Date.now().toString());
-    const fileIdentifier = `${hash.digest("hex")}-${file.name}`;
+    const fileIdentifier = `${hash.digest("hex")}`;
 
     // upload to supabase storage
     const { data, error } = await supabase.storage
@@ -44,16 +44,16 @@ const ArchiveUploadForm: React.FC = () => {
       throw error;
     }
 
-    return data.path;
+    return { url: data.path, name: file.name };
   };
 
   // upload file metadata to supabase
-  const uploadPost = async (filePath: string) => {
-    const postData: PostType = {
+  const uploadPost = async (fileData: FileRecord) => {
+    const postData: PostRecord = {
       title: title,
       description: description === "" ? null : description,
       tags: tags.split(",").map((tag) => tag.trim()),
-      file_url: filePath!,
+      files: [fileData],
     };
 
     const response = await fetch("/api/archive/posts", {
@@ -74,8 +74,8 @@ const ArchiveUploadForm: React.FC = () => {
   const submitForm = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const filePath = await uploadFile();
-      await uploadPost(filePath!);
+      const fileData = await uploadFile();
+      await uploadPost(fileData);
       router.push("/archive");
     } catch (error: unknown) {
       console.error("Failed to create post: ", error);
