@@ -1,7 +1,14 @@
-import { Post, Tag } from "@prisma/client";
+import { Prisma, Tag } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 import PostCard from "~/src/components/archive/PostCard";
+
+type PostAllType = Prisma.PostGetPayload<{
+  include: {
+    tags: { select: { tag_id: true; name: true } };
+    files: { select: { file_id: true; name: true; url: true } };
+  };
+}>;
 
 async function getTags() {
   try {
@@ -16,17 +23,17 @@ async function getTags() {
   }
 }
 
-async function getPosts() {
+async function getPosts(): Promise<PostAllType[]> {
   try {
     const response = await fetch("http://localhost:3000/api/archive/posts");
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    const { posts }: { posts: (Post & { tags: Tag[] })[] } = await response.json();
+    const posts: PostAllType[] = await response.json();
     return posts;
   } catch (error) {
     console.error("Failed to fetch posts:", error);
+    return [];
   }
 }
 

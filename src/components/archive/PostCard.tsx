@@ -2,11 +2,16 @@
 // import Image from 'next/image';
 import { useState } from "react";
 import Detail from "./DetailCard";
-import { Post, Tag } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 interface PostProps {
   className?: string;
-  data: Post & { tags: Tag[] };
+  data: Prisma.PostGetPayload<{
+    include: {
+      tags: { select: { tag_id: true; name: true } };
+      files: { select: { file_id: true; name: true; url: true } };
+    };
+  }>;
 }
 
 const PostCard: React.FC<PostProps> = ({ className, data }) => {
@@ -16,19 +21,26 @@ const PostCard: React.FC<PostProps> = ({ className, data }) => {
     setIsDetail(!isDetail);
   }
 
-  const downloadFile = () => {
-    //Test Data
-    const fileContent = "Hello, this is the content of the file!";
-    const blob = new Blob([fileContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
+  const getFileBlob = async (url: string) => {
+    const queryParams = new URLSearchParams(Object.entries({ fileUrl: url }));
 
-    // 3. 파일 강제 다운로드 처리
+    const response = await fetch(`http://localhost:3000/api/archive/files?${queryParams}`);
+    const blob = await response.blob();
+    return blob;
+  };
+
+  const downloadFile = async () => {
+    // get file blob and convert to url
+    const fileBlob = await getFileBlob(data.files[0].url);
+    const url = URL.createObjectURL(fileBlob);
+
+    // download file to client
     const link = document.createElement("a");
     link.href = url;
-    link.download = "dummy-file.txt"; // 다운로드할 파일 이름
+    link.download = data.files[0].name; // 다운로드할 파일 이름
     link.click();
 
-    // 4. URL 메모리 해제
+    // url meomory release
     URL.revokeObjectURL(url);
   };
 

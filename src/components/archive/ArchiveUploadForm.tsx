@@ -35,7 +35,7 @@ const ArchiveUploadForm: React.FC = () => {
     const fileIdentifier = `${hash.digest("hex")}`;
 
     // upload to supabase storage
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabase.storage 
       .from("project-lamp")
       .upload(`archive/${fileIdentifier}`, file);
 

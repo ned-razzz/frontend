@@ -4,7 +4,6 @@ interface DetailProps {
   description: string | null;
   createdAt: Date;
   updatedAt: Date;
-  // tags: { id: number; name: string; }[];
 }
 
 /**
