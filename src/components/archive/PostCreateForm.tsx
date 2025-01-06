@@ -6,7 +6,7 @@ import { FileRecord, PostRecord } from "~/src/app/api/archive/posts/route";
 import crypto from "crypto";
 import { useRouter } from "next/navigation";
 
-const ArchiveUploadForm: React.FC = () => {
+const PostCreateForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -35,7 +35,7 @@ const ArchiveUploadForm: React.FC = () => {
     const fileIdentifier = `${hash.digest("hex")}`;
 
     // upload to supabase storage
-    const { data, error } = await supabase.storage 
+    const { data, error } = await supabase.storage
       .from("project-lamp")
       .upload(`archive/${fileIdentifier}`, file);
 
@@ -105,4 +105,4 @@ const ArchiveUploadForm: React.FC = () => {
   );
 };
 
-export default ArchiveUploadForm;
+export default PostCreateForm;

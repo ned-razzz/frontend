@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className={nanumGothic.className}>
       <body>
-        <Navigation className="mb-3"/>
+        <Navigation className="mb-3" />
         <main className="min-h-screen">{children}</main>
         <Footer />
       </body>

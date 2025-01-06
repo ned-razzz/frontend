@@ -23,7 +23,7 @@ model File {
   name          String
   url           String
   post_id       BigInt
-  post          Post        @relation(fields: [post_id], references: [post_id])
+  post          Post        @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
 }
 
 model Tag {

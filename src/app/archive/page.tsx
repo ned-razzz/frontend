@@ -1,43 +1,44 @@
-import { Prisma, Tag } from "@prisma/client";
+import { Tag } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 import PostCard from "~/src/components/archive/PostCard";
+import { PostFullyLoaded } from "./types";
 
-type PostAllType = Prisma.PostGetPayload<{
-  include: {
-    tags: { select: { tag_id: true; name: true } };
-    files: { select: { file_id: true; name: true; url: true } };
-  };
-}>;
-
-async function getTags() {
+const getTags = async () => {
   try {
-    const response = await fetch("http://localhost:3000/api/archive/tags");
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/archive/tags`);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`getTags ${response.status}`);
     }
     const { tags } = await response.json();
     return tags as Tag[];
   } catch (error) {
-    console.error("Failed to fetch tags:", error);
-  }
-}
-
-async function getPosts(): Promise<PostAllType[]> {
-  try {
-    const response = await fetch("http://localhost:3000/api/archive/posts");
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // if error fetch, return empty data
+    if (error instanceof Error) {
+      console.error("Failed to fetch tags: ", error.message);
+      return [];
     }
-    const posts: PostAllType[] = await response.json();
-    return posts;
-  } catch (error) {
-    console.error("Failed to fetch posts:", error);
-    return [];
   }
-}
+};
 
-const Archive: React.FC = async () => {
+const getPosts = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/archive/posts`);
+    if (!res.ok) {
+      throw new Error(`getPosts ${res.status}`);
+    }
+    const data: PostFullyLoaded[] = await res.json();
+    return data;
+  } catch (error) {
+    // if error fetch, return empty data
+    if (error instanceof Error) {
+      console.error("Failed to fetch posts: ", error.message);
+      return [];
+    }
+  }
+};
+
+const ArchivePage: React.FC = async () => {
   const tags = await getTags();
   const posts = await getPosts();
 
@@ -58,11 +59,11 @@ const Archive: React.FC = async () => {
       </section>
       <section>
         {posts?.map((post) => (
-          <PostCard key={post.post_id} data={post} className="mb-3" />
+          <PostCard key={post.post_id} className="mb-3" post={post} />
         ))}
       </section>
     </>
   );
 };
 
-export default Archive;
+export default ArchivePage;
