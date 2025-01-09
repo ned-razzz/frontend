@@ -1,9 +1,16 @@
+import { Tag } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "~/src/lib/prisma";
 
 export const GET = async () => {
   try {
-    const tags = await prisma.tag.findMany();
+    // const tags = await prisma.tag.findMany();
+    const tags: Tag[] = await prisma.$queryRaw`
+      SELECT t.tag_id, t.name
+      FROM "_PostToTag" pt
+        JOIN "Tag" t ON pt."B" = t.tag_id
+      GROUP BY t.tag_id;
+    `;
 
     // formatted tag_id to string: cannot serealize BigInt to JSON
     const formattedTags = tags.map((tag) => ({
