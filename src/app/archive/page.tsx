@@ -1,8 +1,8 @@
 import { Tag } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
-import PostCard from "~/src/components/archive/PostCard";
 import { PostFullyLoaded } from "./types";
+import PostList from "~/src/components/archive/PostList";
 
 const getTags = async () => {
   try {
@@ -44,24 +44,26 @@ const ArchivePage: React.FC = async () => {
 
   return (
     <>
-      <aside className="mb-5">
-        <h2 className="text-lg">태그 목록</h2>
+      <section className="mb-5">
+        <h2 className="text-lg">태그 검색</h2>
         <ul className="text-sm">
           {tags?.map((tag: Tag) => (
-            <li key={tag.tag_id}>{tag.name}</li>
+            <li key={tag.tag_id} className="inline-block mr-2">
+              {tag.name}
+            </li>
           ))}
         </ul>
-      </aside>
-      <section className="mb-5">
-        <Link href="/archive/new" className="p-2 border-2 border-black">
+      </section>
+      <section className="mb-5 ">
+        <h2 className="text-lg">제목 검색</h2>
+        <input className="w-full h-8" type="text" placeholder="제목을 입력하세요" />
+      </section>
+      <section className="mb-5 flex items-center">
+        <Link href="/archive/new" className="px-5 py-2 border-2 border-black">
           자료 등록
         </Link>
       </section>
-      <section>
-        {posts?.map((post) => (
-          <PostCard key={post.post_id} className="mb-3" post={post} />
-        ))}
-      </section>
+      <PostList data={posts!} />
     </>
   );
 };
