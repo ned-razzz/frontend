@@ -4,7 +4,7 @@ import { prisma } from "~/src/lib/prisma";
 
 export const GET = async () => {
   try {
-    // const tags = await prisma.tag.findMany();
+    // get tags list that only have connections of post.
     const tags: Tag[] = await prisma.$queryRaw`
       SELECT t.tag_id, t.name
       FROM "_PostToTag" pt
