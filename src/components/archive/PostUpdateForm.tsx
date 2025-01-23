@@ -12,27 +12,23 @@ const PostUpdateForm: React.FC = () => {
   const router = useRouter();
 
   const updatePost = async () => {
-    try {
-      const updateData: PostToUpdate = {
-        postId: "100",
-        title,
-        description,
-      };
+    const updateData: PostToUpdate = {
+      postId: "100",
+      title,
+      description,
+    };
 
-      const response = await fetch(`api/archive/posts`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateData),
-      });
+    const response = await fetch(`api/archive/posts`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateData),
+    });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.msg);
-      }
-    } catch {
-      console.error("Failed to delete post: ");
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.msg);
     }
   };
 
@@ -41,9 +37,9 @@ const PostUpdateForm: React.FC = () => {
     event.preventDefault();
     try {
       updatePost();
-      router.push("/archive");
+      router.replace("/archive");
     } catch (error) {
-      console.error("Failed to create post: ", error);
+      console.error("Failed to update post: ", error);
     }
   };
 

@@ -76,7 +76,7 @@ const PostCreateForm: React.FC = () => {
     try {
       const fileData = await uploadFile();
       await uploadPost(fileData);
-      router.push("/archive");
+      router.replace("/archive");
     } catch (error: unknown) {
       console.error("Failed to create post: ", error);
     }

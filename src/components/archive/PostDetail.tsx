@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { PostFullyLoaded } from "~/src/app/archive/types";
 
@@ -20,6 +22,8 @@ function formatDate(timestamptz: Date): string {
 }
 
 const PostDetail: React.FC<DetailProps> = ({ post }) => {
+  const router = useRouter();
+
   const deletePost = async () => {
     try {
       const params = Object.entries({ postId: post.post_id.toString() });
@@ -32,6 +36,8 @@ const PostDetail: React.FC<DetailProps> = ({ post }) => {
         const error = await response.json();
         throw new Error(error.msg);
       }
+
+      router.replace("/archive");
     } catch {
       console.error("Failed to delete post");
     }
