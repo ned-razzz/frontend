@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { PostFullyLoaded } from "./types";
 import PostList from "~/src/components/archive/PostList";
+import SearchSect from "~/src/components/archive/SearchSect";
 
 const getTags = async () => {
   try {
@@ -54,10 +55,7 @@ const ArchivePage: React.FC = async () => {
           ))}
         </ul>
       </section>
-      <section className="mb-5 ">
-        <h2 className="text-lg">제목 검색</h2>
-        <input className="w-full h-8" type="text" placeholder="제목을 입력하세요" />
-      </section>
+      <SearchSect />
       <section className="mb-5 flex items-center">
         <Link href="/archive/new" className="px-5 py-2 border-2 border-black">
           자료 등록
